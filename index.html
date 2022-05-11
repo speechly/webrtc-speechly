@@ -58,10 +58,9 @@
       }
     });
 
-    speechly.onStateChange(state => console.log("Speechly client state changed", state))
-
     var meeting = new Meeting();
     var meetingRooms = {};
+    var inMeeting = false;
 
     var meetingCreate = document.getElementById("meeting-create");
     var meetingInfo = document.getElementById("meeting-info");
@@ -73,7 +72,8 @@
     var leaveMeetingBtn = document.getElementById("leave-meeting");
 
     meeting.onmeeting = function (room) {
-      if (meetingRooms[room.roomid]) return;
+      console.log("##", room, meetingRooms)
+      if (meetingRooms[room.roomid] || inMeeting) return;
       meetingRooms[room.roomid] = room;
       meetingsList.style.display = "block";
 
@@ -84,6 +84,7 @@
       joinButton.onclick = function () {
         room = meetingRooms[room.roomid];
         if (room) meeting.meet(room);
+        inMeeting = true;
         meetingCreate.style.display = "none";
         meetingInfo.style.display = "flex";
         meetingsList.style.display = "none";
@@ -92,7 +93,6 @@
     };
 
     meeting.onaddstream = async function (e) {
-      console.log(e)
       await speechly.attach(e.stream);
       await speechly.start();
       if (e.type == "local") {
@@ -148,6 +148,7 @@
         video.parentNode.removeChild(video);
         transcriptList.appendChild(document.createTextNode(`${userid} left`));
       };
+      inMeeting = false;
     };
 
     meeting.check();
@@ -155,6 +156,7 @@
     setupMeetingBtn.onclick = function () {
       var meetingRoomName = document.getElementById("meeting-name-input").value || "Simple Meeting";
       meeting.setup(meetingRoomName);
+      inMeeting = true;
       this.disabled = true;
       meetingCreate.style.display = "none";
       meetingInfo.style.display = "flex";

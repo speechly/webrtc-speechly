@@ -36,12 +36,14 @@ body {
   left: 0;
   display: grid;
   grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
   height: 100%
 }
 
 @media (min-width: 768px) {
   .app {
     grid-template-columns: 2fr 1fr;
+    grid-template-rows: auto;
   }
 }
 

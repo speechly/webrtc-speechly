@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Speechly WebRTC Chat</title>
   <link href="https://unpkg.com/normalize.css" rel="stylesheet" />
   <link href="style.css" rel="stylesheet" />
   <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
@@ -16,23 +16,26 @@
 
 <body>
   <div class="app">
-    <div class="meeting">
-      <div class="meeting-create" id="meeting-create">
+    <div id="lobby" class="lobby">
+      <div class="lobby-section">
         <h2>Start a meeting</h2>
-        <input type="text" id="meeting-name-input" placeholder="Your meeting name">
-        <button id="setup-meeting">Start meeting</button>
+        <input type="text" id="meeting-room-name" placeholder="Your meeting name">
+        <button id="start-meeting">Start meeting</button>
       </div>
-      <div class="meeting-info" id="meeting-info" style="display: none;">
-        <h2 id="meeting-name"></h2>
-        <button id="copy-meeting">Copy meeting link</button>
-        <button id="leave-meeting">Leave meeting</button>
-      </div>
-      <div id="meetings-list" class="meeting-list" style="display: none;">
+      <div id="meeting-list" class="lobby-section">
         <h2>Join a meeting</h2>
       </div>
-      <div class="meeting-content" id="streams-container"></div>
     </div>
-    <div id="transcript-list" class="transcripts"></div>
+    <div id="meeting" class="meeting">
+      <div class="meeting-room">
+        <div id="room-info" class="room-info">
+          <h2 id="room-name"></h2>
+          <button id="leave-room">Leave meeting</button>
+        </div>
+        <div id="streams-container" class="room-streams"></div>
+      </div>
+      <div id="transcript-list" class="transcripts"></div>
+    </div>
   </div>
 
   <script type="module">
@@ -62,33 +65,29 @@
     var meetingRooms = {};
     var inMeeting = false;
 
-    var meetingCreate = document.getElementById("meeting-create");
-    var meetingInfo = document.getElementById("meeting-info");
-    var meetingName = document.getElementById("meeting-name");
-    var meetingsList = document.getElementById("meetings-list");
+    var meetingLobby = document.getElementById("lobby");
+    var meetingRoom = document.getElementById("meeting");
+    var meetingList = document.getElementById("meeting-list");
+    var roomName = document.getElementById("room-name");
     var streamsContainer = document.getElementById("streams-container");
-    var setupMeetingBtn = document.getElementById("setup-meeting");
-    var copyMeetingBtn = document.getElementById("copy-meeting");
-    var leaveMeetingBtn = document.getElementById("leave-meeting");
+    var startMeetingBtn = document.getElementById("start-meeting");
+    var leaveRoomBtn = document.getElementById("leave-room");
 
     meeting.onmeeting = function (room) {
-      console.log("##", room, meetingRooms)
       if (meetingRooms[room.roomid] || inMeeting) return;
       meetingRooms[room.roomid] = room;
-      meetingsList.style.display = "block";
 
       var joinButton = document.createElement("button");
       joinButton.innerText = room.roomid;
-      meetingsList.appendChild(joinButton);
+      meetingList.appendChild(joinButton);
 
       joinButton.onclick = function () {
-        room = meetingRooms[room.roomid];
-        if (room) meeting.meet(room);
+        if (!room) return
+        meeting.meet(room);
         inMeeting = true;
-        meetingCreate.style.display = "none";
-        meetingInfo.style.display = "flex";
-        meetingsList.style.display = "none";
-        meetingName.innerText = room.roomid;
+        meetingLobby.style.display = "none";
+        meetingRoom.style.display = "grid";
+        roomName.innerText = room.roomid;
       };
     };
 
@@ -96,23 +95,17 @@
       await speechly.detach();
       await speechly.attach(e.stream);
       await speechly.start();
-      if (e.type == "local") {
-        var localStream = document.createElement("div")
-        localStream.id = "container-" + e.userid
-        localStream.className = "video-container"
-        localStream.innerHTML = `<div class="video-label">You</div>`
-        e.video.controls = false
-        localStream.appendChild(e.video)
-        streamsContainer.insertBefore(localStream, streamsContainer.firstChild)
-      };
+
+      var videoContainer = document.createElement("div");
+      videoContainer.id = "container-" + e.userid;
+      videoContainer.className = "video-container";
+      videoContainer.innerHTML = `<div class="video-label">${e.userid}</div>`;
+      e.video.controls = false;
+      videoContainer.appendChild(e.video);
+
+      if (e.type == "local") streamsContainer.insertBefore(videoContainer, streamsContainer.firstChild);
       if (e.type == "remote") {
-        var remoteStream = document.createElement("div")
-        remoteStream.id = "container-" + e.userid
-        remoteStream.className = "video-container"
-        remoteStream.innerHTML = `<div class="video-label">${e.userid}</div>`
-        e.video.controls = false
-        remoteStream.appendChild(e.video)
-        streamsContainer.appendChild(remoteStream);
+        streamsContainer.appendChild(videoContainer);
         transcriptList.appendChild(document.createTextNode(`${e.userid} joined`));
       };
     };
@@ -147,32 +140,23 @@
 
     meeting.onuserleft = function (userid) {
       var video = document.getElementById("container-" + userid);
-      if (video) {
-        video.parentNode.removeChild(video);
-        transcriptList.appendChild(document.createTextNode(`${userid} left`));
-      };
-      inMeeting = false;
+      if (video) video.parentNode.removeChild(video);
+      if (userid !== "self") transcriptList.appendChild(document.createTextNode(`${userid} left`));
     };
 
     meeting.check();
 
-    setupMeetingBtn.onclick = function () {
-      var meetingRoomName = document.getElementById("meeting-name-input").value;
-      if (!meetingRoomName) return;
-      meeting.setup(meetingRoomName);
+    startMeetingBtn.onclick = function () {
+      var name = document.getElementById("meeting-room-name").value;
+      if (!name) return;
+      meeting.setup(name);
       inMeeting = true;
-      this.disabled = true;
-      meetingCreate.style.display = "none";
-      meetingInfo.style.display = "flex";
-      meetingsList.style.display = "none";
-      meetingName.innerText = meetingRoomName;
+      meetingLobby.style.display = "none";
+      meetingRoom.style.display = "grid";
+      roomName.innerText = name;
     };
 
-    copyMeetingBtn.onclick = function() {
-      navigator.clipboard.writeText(window.location);
-    };
-
-    leaveMeetingBtn.onclick = function() {
+    leaveRoomBtn.onclick = function() {
       meeting.leave();
       location.reload();
     };

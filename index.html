@@ -93,6 +93,7 @@
     };
 
     meeting.onaddstream = async function (e) {
+      await speechly.detach();
       await speechly.attach(e.stream);
       await speechly.start();
       if (e.type == "local") {
@@ -100,7 +101,8 @@
         localStream.id = "container-" + e.userid
         localStream.className = "video-container"
         localStream.innerHTML = `<div class="video-label">You</div>`
-        localStream.insertBefore(e.video, localStream.firstChild)
+        e.video.controls = false
+        localStream.appendChild(e.video)
         streamsContainer.insertBefore(localStream, streamsContainer.firstChild)
       };
       if (e.type == "remote") {
@@ -108,6 +110,7 @@
         remoteStream.id = "container-" + e.userid
         remoteStream.className = "video-container"
         remoteStream.innerHTML = `<div class="video-label">${e.userid}</div>`
+        e.video.controls = false
         remoteStream.appendChild(e.video)
         streamsContainer.appendChild(remoteStream);
         transcriptList.appendChild(document.createTextNode(`${e.userid} joined`));
@@ -154,7 +157,8 @@
     meeting.check();
 
     setupMeetingBtn.onclick = function () {
-      var meetingRoomName = document.getElementById("meeting-name-input").value || "Simple Meeting";
+      var meetingRoomName = document.getElementById("meeting-name-input").value;
+      if (!meetingRoomName) return;
       meeting.setup(meetingRoomName);
       inMeeting = true;
       this.disabled = true;
@@ -172,7 +176,6 @@
       meeting.leave();
       location.reload();
     };
-
   </script>
 </body>
 

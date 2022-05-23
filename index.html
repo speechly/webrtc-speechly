@@ -45,6 +45,7 @@
       appId: "84919e7d-9af6-40be-9c76-ecc03aef984d",
       debug: true,
       logSegments: true,
+      vad: { enabled: true, noiseGateDb: -24.0 }
     });
     var transcriptList = document.getElementById("transcript-list");
 
@@ -94,7 +95,6 @@
     meeting.onaddstream = async function (e) {
       await speechly.detach();
       await speechly.attach(e.stream);
-      await speechly.start();
 
       var videoContainer = document.createElement("div");
       videoContainer.id = "container-" + e.userid;

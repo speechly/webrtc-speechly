@@ -1,166 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Speechly WebRTC Chat</title>
-  <link href="https://unpkg.com/normalize.css" rel="stylesheet" />
+  <title>Speechly WebRTC Meeting</title>
+  <link rel="stylesheet" href="https://unpkg.com/chota@latest">
   <link href="style.css" rel="stylesheet" />
-  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-  <script src="https://cdn.webrtc-experiment.com/CodecsHandler.js"></script>
-  <script src="https://cdn.webrtc-experiment.com/IceServersHandler.js"></script>
-  <script src="https://cdn.webrtc-experiment.com/meeting.js"></script>
 </head>
-
 <body>
   <div class="app">
     <div id="lobby" class="lobby">
-      <div class="lobby-section">
-        <h2>Start a meeting</h2>
-        <input type="text" id="meeting-room-name" placeholder="Your meeting name">
-        <button id="start-meeting">Start meeting</button>
-      </div>
-      <div id="meeting-list" class="lobby-section">
-        <h2>Join a meeting</h2>
+      <h2>Start a meeting</h2>
+      <button id="new-meeting">New meeting</button>
+      <br/>
+      <h2>Join a meeting</h2>
+      <div class="lobby-join">
+        <input type="text" id="meeting-room-id" placeholder="Meeting ID">
+        <button id="join-meeting">Join</button>
       </div>
     </div>
     <div id="meeting" class="meeting">
       <div class="meeting-room">
         <div id="room-info" class="room-info">
           <h2 id="room-name"></h2>
-          <button id="leave-room">Leave meeting</button>
+          <button id="copy-room">Copy</button>
+          <button id="leave-room">Leave</button>
         </div>
         <div id="streams-container" class="room-streams"></div>
       </div>
       <div id="transcript-list" class="transcripts"></div>
     </div>
   </div>
-
-  <script type="module">
-    import { BrowserClient } from "//unpkg.com/@speechly/browser-client?module=true"
-
-    var speechly = new BrowserClient({
-      appId: "84919e7d-9af6-40be-9c76-ecc03aef984d",
-      debug: true,
-      logSegments: true,
-      vad: { enabled: true, noiseGateDb: -24.0 }
-    });
-    var transcriptList = document.getElementById("transcript-list");
-
-    speechly.onSegmentChange(segment => {
-      if (segment && segment.isFinal) {
-        let transcript = segment.words.map(w => w.value.toLowerCase()).join(" ");
-        var ms = segment.words[0].startTimestamp;
-        var sec = String(Math.floor((ms / 1000) % 60)).padStart(2, 0);
-        var min = String(Math.floor((ms / 1000 / 60) % 60)).padStart(2, 0);
-        var div = document.createElement("div");
-        div.className = "segment";
-        div.innerHTML = `<div>${min}:${sec}</div>${transcript}`;
-        transcriptList.appendChild(div);
-      }
-    });
-
-    var meeting = new Meeting();
-    var meetingRooms = {};
-    var inMeeting = false;
-
-    var meetingLobby = document.getElementById("lobby");
-    var meetingRoom = document.getElementById("meeting");
-    var meetingList = document.getElementById("meeting-list");
-    var roomName = document.getElementById("room-name");
-    var streamsContainer = document.getElementById("streams-container");
-    var startMeetingBtn = document.getElementById("start-meeting");
-    var leaveRoomBtn = document.getElementById("leave-room");
-
-    meeting.onmeeting = function (room) {
-      if (meetingRooms[room.roomid] || inMeeting) return;
-      meetingRooms[room.roomid] = room;
-
-      var joinButton = document.createElement("button");
-      joinButton.innerText = room.roomid;
-      meetingList.appendChild(joinButton);
-
-      joinButton.onclick = function () {
-        if (!room) return
-        meeting.meet(room);
-        inMeeting = true;
-        meetingLobby.style.display = "none";
-        meetingRoom.style.display = "grid";
-        roomName.innerText = room.roomid;
-      };
-    };
-
-    meeting.onaddstream = async function (e) {
-      await speechly.detach();
-      await speechly.attach(e.stream);
-
-      var videoContainer = document.createElement("div");
-      videoContainer.id = "container-" + e.userid;
-      videoContainer.className = "video-container";
-      videoContainer.innerHTML = `<div class="video-label">${e.userid}</div>`;
-      e.video.controls = false;
-      videoContainer.appendChild(e.video);
-
-      if (e.type == "local") streamsContainer.insertBefore(videoContainer, streamsContainer.firstChild);
-      if (e.type == "remote") {
-        streamsContainer.appendChild(videoContainer);
-        transcriptList.appendChild(document.createTextNode(`${e.userid} joined`));
-      };
-    };
-
-    meeting.openSignalingChannel = function (onmessage) {
-      var channel = location.href.replace(/\/|:|#|%|\.|\[|\]/g, "");
-      var websocket = new WebSocket("wss://muazkhan.com:9449/");
-      websocket.onopen = function () {
-        websocket.push(JSON.stringify({
-          open: true,
-          channel: channel
-        }));
-      };
-      websocket.push = websocket.send;
-      websocket.send = function (data) {
-        if (websocket.readyState != 1) {
-          return setTimeout(function () {
-            websocket.send(data);
-          }, 300);
-        }
-
-        websocket.push(JSON.stringify({
-          data: data,
-          channel: channel
-        }));
-      };
-      websocket.onmessage = function (e) {
-        onmessage(JSON.parse(e.data));
-      };
-      return websocket;
-    };
-
-    meeting.onuserleft = function (userid) {
-      var video = document.getElementById("container-" + userid);
-      if (video) video.parentNode.removeChild(video);
-      if (userid !== "self") transcriptList.appendChild(document.createTextNode(`${userid} left`));
-    };
-
-    meeting.check();
-
-    startMeetingBtn.onclick = function () {
-      var name = document.getElementById("meeting-room-name").value;
-      if (!name) return;
-      meeting.setup(name);
-      inMeeting = true;
-      meetingLobby.style.display = "none";
-      meetingRoom.style.display = "grid";
-      roomName.innerText = name;
-    };
-
-    leaveRoomBtn.onclick = function() {
-      meeting.leave();
-      location.reload();
-    };
-  </script>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <script src="https://cdn.webrtc-experiment.com/CodecsHandler.js"></script>
+  <script src="https://cdn.webrtc-experiment.com/IceServersHandler.js"></script>
+  <script src="https://cdn.webrtc-experiment.com/meeting.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
-
 </html>

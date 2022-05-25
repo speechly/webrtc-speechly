@@ -14,7 +14,6 @@ speechly.onSegmentChange(segment => {
     let div = document.createElement("div");
     let id = segment.contextId + "-" + segment.id
     div.id = id
-    div.className = "segment";
     div.textContent = tentative;
 
     let segmentDiv = document.getElementById(id)
@@ -30,7 +29,7 @@ speechly.onSegmentChange(segment => {
 
 const transcriptList = document.getElementById("transcript");
 const meetingLobby = document.getElementById("lobby");
-const meetingRoom = document.getElementById("meeting");
+const meetingRoom = document.getElementById("room");
 const roomID = document.getElementById("room-id");
 const streamsContainer = document.getElementById("streams");
 const newRoomBtn = document.getElementById("new-room");

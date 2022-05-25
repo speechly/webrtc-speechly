@@ -34,34 +34,34 @@
   margin-right: 4px;
 }
 
-.meeting {
+.room {
   display: none;
   grid-template-columns: 1fr;
   height: 100%
 }
 
 @media (min-width: 768px) {
-  .meeting {
+  .room {
     grid-template-columns: 2fr 1fr;
   }
 }
 
-.meeting-container {
+.room-container {
   padding: 2rem;
 }
 
-.meeting-header {
+.room-header {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 32px;
 }
 
-.meeting-header h2 {
+.room-header h2 {
   margin: 0;
 }
 
-.meeting-streams {
+.room-streams {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(40%, 1fr));
   gap: 16px;
@@ -82,7 +82,7 @@ video#self {
   transform: rotateY(180deg);
 }
 
-.transcript {
+.room-transcript {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -91,7 +91,7 @@ video#self {
   padding: 32px;
 }
 
-.segment {
+.room-transcript div {
   background-color: var(--color-lightGrey);
   padding: 10px 12px;
   line-height: 1.25;

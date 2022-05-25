@@ -8,29 +8,10 @@ const speechly = new BrowserClient({
   vad: { enabled: true, noiseGateDb: -24.0 }
 });
 
-speechly.onSegmentChange(segment => {
-  if (segment) {
-    let tentative = segment.words.map(w => w.value.toLowerCase()).join(" ");
-    let div = document.createElement("div");
-    let id = segment.contextId + "-" + segment.id
-    div.id = id
-    div.textContent = tentative;
-
-    let segmentDiv = document.getElementById(id)
-    if (segmentDiv) segmentDiv.textContent = tentative
-    if (!segmentDiv) transcriptList.appendChild(div)
-
-    if (segment.isFinal) {
-      let transcript = segment.words.map(w => w.value.toLowerCase()).join(" ");
-      segmentDiv.textContent = transcript;
-    }
-  }
-});
-
-const transcriptList = document.getElementById("transcript");
+const transcriptContainer = document.getElementById("transcript");
 const meetingLobby = document.getElementById("lobby");
 const meetingRoom = document.getElementById("room");
-const roomID = document.getElementById("room-id");
+const roomName = document.getElementById("room-name");
 const streamsContainer = document.getElementById("streams");
 const newRoomBtn = document.getElementById("new-room");
 const joinRoomBtn = document.getElementById("join-room");
@@ -40,8 +21,25 @@ const leaveRoomBtn = document.getElementById("leave-room");
 function setupMeetingRoom(roomid) {
   meetingLobby.style.display = "none";
   meetingRoom.style.display = "grid";
-  roomID.textContent = roomid;
+  roomName.textContent = roomid;
 }
+
+speechly.onSegmentChange(segment => {
+  if (segment) {
+    let text = segment.words.map(w => w.value.toLowerCase()).join(" ");
+    let div = document.createElement("div");
+    let id = segment.contextId + "-" + segment.id
+    div.id = id
+
+    let segmentDiv = document.getElementById(id)
+    if (segmentDiv) segmentDiv.textContent = text
+    if (!segmentDiv) transcriptContainer.appendChild(div)
+
+    if (segment.isFinal) {
+      segmentDiv.textContent = text;
+    }
+  }
+});
 
 meeting.onmeeting = function(room) {
   if (!room) return
@@ -55,9 +53,7 @@ meeting.onmeeting = function(room) {
 };
 
 meeting.onaddstream = async function(e) {
-  await speechly.detach();
   await speechly.attach(e.stream);
-
   e.video.controls = false;
   if (e.type == "local") streamsContainer.insertBefore(e.video, streamsContainer.firstChild);
   if (e.type == "remote") streamsContainer.appendChild(e.video);
@@ -99,13 +95,13 @@ meeting.onuserleft = function(userid) {
 meeting.check();
 
 newRoomBtn.onclick = function() {
-  let roomid = Math.random().toString(36).slice(2, 10)
-  meeting.setup(roomid);
-  setupMeetingRoom(roomid)
+  let name = Math.random().toString(36).slice(2, 10)
+  meeting.setup(name);
+  setupMeetingRoom(name);
 };
 
 copyRoomBtn.onclick = function() {
-  navigator.clipboard.writeText(roomID.textContent)
+  navigator.clipboard.writeText(roomName.textContent)
 }
 
 leaveRoomBtn.onclick = function() {

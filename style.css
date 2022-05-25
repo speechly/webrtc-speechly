@@ -47,7 +47,7 @@
 }
 
 .room-container {
-  padding: 2rem;
+  padding: 32px;
 }
 
 .room-header {
@@ -65,7 +65,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(40%, 1fr));
   gap: 16px;
-  position: relative;
 }
 
 video {

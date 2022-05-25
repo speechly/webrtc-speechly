@@ -2,9 +2,9 @@ import { BrowserClient } from "//unpkg.com/@speechly/browser-client?module=true"
 
 const meeting = new Meeting();
 const speechly = new BrowserClient({
-  appId: "84919e7d-9af6-40be-9c76-ecc03aef984d",
-  // debug: true,
-  // logSegments: true,
+  appId: "APP-ID",
+  debug: true,
+  logSegments: true,
   vad: { enabled: true, noiseGateDb: -24.0 }
 });
 

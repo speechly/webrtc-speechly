@@ -12,24 +12,24 @@
   <div class="app">
     <div id="lobby" class="lobby">
       <h2>Start a meeting</h2>
-      <button id="new-meeting">New meeting</button>
+      <button id="new-room">New meeting</button>
       <br/>
       <h2>Join a meeting</h2>
       <div class="lobby-join">
         <input type="text" id="meeting-room-id" placeholder="Meeting ID">
-        <button id="join-meeting">Join</button>
+        <button id="join-room">Join</button>
       </div>
     </div>
     <div id="meeting" class="meeting">
-      <div class="meeting-room">
-        <div id="room-info" class="room-info">
-          <h2 id="room-name"></h2>
+      <div class="meeting-container">
+        <div class="meeting-header">
+          <h2 id="room-id"></h2>
           <button id="copy-room">Copy</button>
           <button id="leave-room">Leave</button>
         </div>
-        <div id="streams-container" class="room-streams"></div>
+        <div id="streams" class="meeting-streams"></div>
       </div>
-      <div id="transcript-list" class="transcripts"></div>
+      <div id="transcript" class="transcript"></div>
     </div>
   </div>
   <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>

@@ -28,26 +28,26 @@ speechly.onSegmentChange(segment => {
   }
 });
 
-const transcriptList = document.getElementById("transcript-list");
+const transcriptList = document.getElementById("transcript");
 const meetingLobby = document.getElementById("lobby");
 const meetingRoom = document.getElementById("meeting");
-const roomName = document.getElementById("room-name");
-const streamsContainer = document.getElementById("streams-container");
-const newMeetingBtn = document.getElementById("new-meeting");
-const joinMeetingBtn = document.getElementById("join-meeting");
+const roomID = document.getElementById("room-id");
+const streamsContainer = document.getElementById("streams");
+const newRoomBtn = document.getElementById("new-room");
+const joinRoomBtn = document.getElementById("join-room");
 const copyRoomBtn = document.getElementById("copy-room");
 const leaveRoomBtn = document.getElementById("leave-room");
 
 function setupMeetingRoom(roomid) {
   meetingLobby.style.display = "none";
   meetingRoom.style.display = "grid";
-  roomName.textContent = roomid;
+  roomID.textContent = roomid;
 }
 
 meeting.onmeeting = function(room) {
   if (!room) return
 
-  joinMeetingBtn.onclick = function() {
+  joinRoomBtn.onclick = function() {
     let id = document.getElementById("meeting-room-id").value;
     if (id !== room.roomid) return
     meeting.meet(room)
@@ -99,14 +99,14 @@ meeting.onuserleft = function(userid) {
 
 meeting.check();
 
-newMeetingBtn.onclick = function() {
+newRoomBtn.onclick = function() {
   let roomid = Math.random().toString(36).slice(2, 10)
   meeting.setup(roomid);
   setupMeetingRoom(roomid)
 };
 
 copyRoomBtn.onclick = function() {
-  navigator.clipboard.writeText(roomName.textContent)
+  navigator.clipboard.writeText(roomID.textContent)
 }
 
 leaveRoomBtn.onclick = function() {

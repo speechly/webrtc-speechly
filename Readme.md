@@ -6,6 +6,8 @@ Example code of a simple WebRTC video chat application that uses Speechly to pro
 
 To run this you need a Speechly account and an Speechly application that has been deployed. You can get started here https://api.speechly.com/dashboard/
 
+Add the Speechly application ID to the constructor call of the Speechly `BrowserClient` object in `main.js`.
+
 ### Running locally
 
 Fire up a local development server of your choice

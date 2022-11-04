@@ -12,7 +12,7 @@ Add the Speechly application ID to the constructor call of the Speechly `Browser
 
 Fire up a local development server of your choice
 
-```
+```bash
 python -m SimpleHTTPServer
 # or the Python 3 equivalent
 python3 -m http.server
